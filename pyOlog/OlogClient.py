@@ -7,13 +7,9 @@ Created on Jan 10, 2013
 @author: shroffk
 '''
 import requests
-from json import JSONEncoder, JSONDecoder, loads
-from copy import copy
+from json import JSONEncoder, JSONDecoder
 from OlogDataTypes import *
-from StringIO import StringIO
 import json
-from PIL import Image
-from StringIO import StringIO
 from requests import auth
 
 class OlogClient(object):
@@ -36,6 +32,8 @@ class OlogClient(object):
             self.__password = password
             if username and password:
                 self.__auth = auth.HTTPBasicAuth(username, password)
+            else:
+                self.__auth = None
             resp = requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader)
             '''
             try:
@@ -60,10 +58,21 @@ class OlogClient(object):
 '''
         except:
             raise
+    
+    def createLogbook(self, logbook):
+        '''
+        Create Logbook
+        '''
+        requests.put(self.__url + self.__logbooksResource + '/' + logbook.getName(),
+                     data=LogbookEncoder().encode(logbook),
+                     verify=False,
+                     headers=self.__jsonheader,
+                     auth=self.__auth).raise_for_status()
+        
         
     def createTag(self, tag):
         '''
-        Create a Tag in the service
+        Create Tag
         '''
         url = self.__url + self.__tagsResource + '/' + tag.getName()
         resp = requests.put(url,
@@ -75,7 +84,7 @@ class OlogClient(object):
         
     def listTags(self):
         '''
-        List all the tags that exist.
+        List all tags.
         '''
         resp = requests.get(self.__url + self.__tagsResource,
                            verify=False,
@@ -83,18 +92,84 @@ class OlogClient(object):
                            auth=self.__auth)
         resp.raise_for_status()
         tags = []
-        for tag in resp.json().pop('tag'):
-            tags.append(TagDecoder().dict_to_tag(tag))
+        for jsonTag in resp.json().pop('tag'):
+            tags.append(TagDecoder().dictToTag(jsonTag))
         return tags
     
-    def deletTag(self, tagName):
+    def listLogbooks(self):
         '''
-        delete the tag identified by tagName
+        List all logbooks
         '''
-        requests.delete(self.__url + self.__tagsResource + '/' + tagName,
+        resp = requests.get(self.__url + self.__logbooksResource,
+                            verify=False,
+                            headers=self.__jsonheader,
+                            auth=self.__auth)
+        resp.raise_for_status()
+        logbooks = []
+        for jsonLogbook in resp.json().pop('logbook'):
+            logbooks.append(LogbookDecoder().dictToLogbook(jsonLogbook))
+        return logbooks
+                        
+    def delete(self, **kwds):
+        '''
+        Method to delete a logbook, property, tag
+        delete(logbookName = String)
+        >>> delete(logbookName = 'logbookName')
+        
+        delete(tagName = String)
+        >>> delete(tagName = 'myTag')
+        # tagName = tag name of the tag to be deleted (it will be removed from all logEntries)
+        
+        delete(propertyName = String)
+        >>> delete(propertyName = 'position')
+        # propertyName = property name of property to be deleted (it will be removed from all logEntries)
+        '''
+        if len(kwds) == 1:
+            self.__handleSingleDeleteParameter(**kwds)
+        else:
+            raise Exception, 'incorrect usage: Delete a single Logbook/tag/property'
+        
+        
+    def __handleSingleDeleteParameter(self, **kwds):
+        if 'logbookName' in kwds:
+            requests.delete(self.__url + self.__logbooksResource + '/' + kwds['logbookName'].strip(),
                         verify=False,
                         headers=self.__jsonheader,
                         auth=self.__auth).raise_for_status()
+            pass
+        elif 'tagName' in kwds:
+            requests.delete(self.__url + self.__tagsResource + '/' + kwds['tagName'].strip(),
+                        verify=False,
+                        headers=self.__jsonheader,
+                        auth=self.__auth).raise_for_status()
+            pass
+        elif 'propertyName' in kwds:
+            requests.delete(self.__url + self.__propertiesResource + '/' + kwds['propertyName'].strip(),
+                        verify=False,
+                        headers=self.__jsonheader,
+                        auth=self.__auth).raise_for_status()
+            pass
+        else:
+            raise Exception, ' unkown key, use logbookName, tagName or proprtyName'
+
+class LogbookEncoder(JSONEncoder):
+    
+    def default(self, obj):
+        if isinstance(obj, Logbook):
+            return {"name":obj.getName(), "owner":obj.getOwner()}
+        return json.JSONDecoder.decode(self, obj)
+
+class LogbookDecoder(JSONDecoder):
+    
+    def __init__(self):
+        json.JSONDecoder.__init__(self, object_hook=self.dictToLogbook)
+        
+    def dictToLogbook(self, d):
+        if d:
+            return Logbook(name=d.pop('name'), owner=d.pop('owner'))
+        else:
+            return None
+        
 
 class TagEncoder(JSONEncoder):
        
@@ -106,9 +181,9 @@ class TagEncoder(JSONEncoder):
 class TagDecoder(JSONDecoder):
     
     def __init__(self):
-        json.JSONDecoder.__init__(self, object_hook=self.dict_to_tag)
+        json.JSONDecoder.__init__(self, object_hook=self.dictToTag)
         
-    def dict_to_tag(self, d):
+    def dictToTag(self, d):
         if d:
             return Tag(name=d.pop('name'), state=d.pop('state'))
         else:

@@ -8,7 +8,7 @@ Created on Jan 9, 2013
 '''
 import unittest
 from pyOlog import OlogClient
-from pyOlog.OlogDataTypes import Tag
+from pyOlog.OlogDataTypes import Tag, Logbook
 
 class Test(unittest.TestCase):
 
@@ -42,12 +42,23 @@ class TestCreate(unittest.TestCase):
         '''
         Basic operations of creating, listing and deleting a Tag object
         '''
-        client = OlogClient(url='https://localhost:8181/Olog',username='shroffk',password='1234')
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testTag = Tag(name='testTag', state="Active")
         client.createTag(testTag)
         self.assertTrue(testTag in client.listTags(), 'failed to create the testTag')
-        client.deletTag('testTag')
+        client.delete(tagName='testTag')
         self.assertTrue(testTag not in client.listTags(), 'failed to cleanup the testTag')
+        
+    def testCreateLogbook(self):
+        '''
+        Basic operations of creating, listing and deleting a Logbook object
+        '''
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        testLogbook = Logbook(name='testLogbook', owner='testOwner')
+        client.createLogbook(testLogbook)
+        self.assertTrue(testLogbook in client.listLogbooks(), 'failed to create the testLogbook')
+        client.delete(logbookName='testLogbook')
+        self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')        
         
     
 class TestLogEntryCreation(unittest.TestCase):

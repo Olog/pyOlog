@@ -32,6 +32,10 @@ class TestLogbook(unittest.TestCase):
         logbook = Logbook(name='logbookName', owner='logbookOwner')
         self.assertEqual(logbook.getName(), 'logbookName', 'Failed to create logbook')
         self.assertEqual(logbook.getOwner(), 'logbookOwner', 'Failed to create logbook')
+        '''Check equality which is based on name and owner'''
+        logbookA = Logbook(name='testName', owner='logbookOwner')
+        logbookB = Logbook(name='testName', owner='logbookOwner')
+        self.assertEqual(logbookA, logbookB, 'Failed equality test')
         pass
     
 class TestProperty(unittest.TestCase):

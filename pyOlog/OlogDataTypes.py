@@ -57,7 +57,11 @@ class Logbook(object):
     
     def getOwner(self):
         return self.__Owner
-    
+        
+    def __cmp__(self, *arg, **kwargs):  
+        if arg[0] == None:
+            return 1      
+        return cmp((self.__Name, self.__Owner), (arg[0].__Name, arg[0].__Owner))
            
 class Tag(object):
     '''
@@ -85,6 +89,10 @@ class Tag(object):
     
 class Property(object):
     '''
+    A property consists of a unique name and a set of attributes consisting of key value pairs
+    e.g.
+    Property('Ticket', attributes={'Id':'1234','URL':'http://trac.nsls2.bnl.gov/trac/1234'}
+    Property('Scan', attributes={'Number':'run-1234', 'script':'scan_20130117.py'}
     '''
     
     def __init__(self, name, attributes=None):
