@@ -65,14 +65,23 @@ class Tag(object):
     '''
 
 
-    def __init__(self, name, state=None):
+    def __init__(self, name, state="Active"):
         '''
         Constructor
         '''
-        self.__Name = str(name).strip();
+        self.__Name = str(name).strip()
+        self.__State = str(state).strip()
     
     def getName(self):
         return self.__Name
+    
+    def getState(self):
+        return self.__State
+    
+    def __cmp__(self, *arg, **kwargs):  
+        if arg[0] == None:
+            return 1      
+        return cmp((self.__Name, self.__State), (arg[0].__Name, arg[0].__State))
     
 class Property(object):
     '''

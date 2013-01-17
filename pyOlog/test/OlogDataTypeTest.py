@@ -1,4 +1,7 @@
 '''
+Copyright (c) 2010 Brookhaven National Laboratory
+All rights reserved. Use is subject to license terms and conditions.
+
 Created on Jan 8, 2013
 
 @author: shroffk
@@ -14,7 +17,10 @@ class TestTag(unittest.TestCase):
         '''        
         tag1 = Tag(name='tagName')
         self.assertEqual(tag1.getName(), 'tagName', 'failed to create the tag correctly')
-        tag2 = Tag(name='tagName', state='')
+        '''Check equality which is based on name and state'''
+        taga = Tag(name='testName', state='Active')
+        tagb = Tag(name='testName', state='Active')
+        self.assertEqual(taga, tagb, 'Failed equality test')
         pass
     
 class TestLogbook(unittest.TestCase):
