@@ -7,7 +7,7 @@ Created on Jan 8, 2013
 @author: shroffk
 '''
 import unittest
-from pyOlog import LogEntry, Tag, Logbook, Property
+from pyOlog import LogEntry, Tag, Logbook, Property, Attachment
     
 class TestTag(unittest.TestCase):
     
@@ -20,7 +20,8 @@ class TestTag(unittest.TestCase):
         '''Check equality which is based on name and state'''
         taga = Tag(name='testName', state='Active')
         tagb = Tag(name='testName', state='Active')
-        self.assertEqual(taga, tagb, 'Failed equality test')
+        self.assertEqual(taga, tagb, 'Failed equality condition')
+        self.assertEqual([taga], [tagb], 'Failed equality condition')
         pass
     
 class TestLogbook(unittest.TestCase):
@@ -35,7 +36,7 @@ class TestLogbook(unittest.TestCase):
         '''Check equality which is based on name and owner'''
         logbookA = Logbook(name='testName', owner='logbookOwner')
         logbookB = Logbook(name='testName', owner='logbookOwner')
-        self.assertEqual(logbookA, logbookB, 'Failed equality test')
+        self.assertEqual(logbookA, logbookB, 'Failed equality condition')
         pass
     
 class TestProperty(unittest.TestCase):
@@ -45,11 +46,13 @@ class TestProperty(unittest.TestCase):
         A Property consists of a name(required) and a set of attributes
         '''      
         attributes = {'attribute1':'attribute1Value', 'attribute2':'attribute2Value'}
-        property = Property(name='propertyName', attributes=attributes)
-        self.assertEqual(property.getName(), 'propertyName', '')
-        self.assertEqual(property.getAttributes(), attributes , '')
-        self.assertEqual(set(property.getAttributeNames()), set(['attribute1', 'attribute2']), '')
-        self.assertEqual(property.getAttributeValue('attribute1'), 'attribute1Value', '')
+        property1 = Property(name='propertyName', attributes=attributes)
+        self.assertEqual(property1.getName(), 'propertyName', '')
+        self.assertEqual(property1.getAttributes(), attributes , '')
+        self.assertEqual(set(property1.getAttributeNames()), set(['attribute1', 'attribute2']), '')
+        self.assertEqual(property1.getAttributeValue('attribute1'), 'attribute1Value', '')
+        property2 = Property(name='propertyName', attributes={'attribute1':'attribute1Value', 'attribute2':'attribute2Value'})
+        self.assertEqual(property1, property2, 'Failed equality condition')
         pass
   
 class TestAttachment(unittest.TestCase):
@@ -57,6 +60,8 @@ class TestAttachment(unittest.TestCase):
     def testCreateAttachment(self):
         '''
         '''
+        attachment = Attachment(file=open('Desert.jpg'))
+        
         pass
       
 class LogEntryTest(unittest.TestCase):
@@ -74,6 +79,15 @@ class LogEntryTest(unittest.TestCase):
         self.assertEqual(logEntry.getLogbooks(), logbooks, 'msg')
 #        self.assertTrue(logEntry.hasLogbook('experiment'), 'msg')
         pass
+    
+    def testCmp(self):
+        tags = [ Tag(name='Timing'), Tag(name='Magnets') ]
+        logbooks = [ Logbook(name='experiment', owner='controls') ]
+        logEntry1 = LogEntry(text='Turning on LINAC', owner='controls', logbooks=logbooks, tags=tags, id=1234)
+        logEntry2 = LogEntry(text='Turning on LINAC', owner='controls', logbooks=logbooks, tags=tags, id=1234)
+        self.assertEqual(logEntry1, logEntry2, 'Failed LogEntry equality')
+        self.assertIn(logEntry1, [logEntry2])
+        
     
 
 if __name__ == "__main__":
