@@ -115,6 +115,7 @@ class OlogClient(object):
         Create Property
         '''
         url = self.__url + self.__propertiesResource + '/' + property.getName()
+        p = PropertyEncoder().encode(property)
         requests.put(url,
                      data=PropertyEncoder().encode(property),
                      verify=False,
@@ -261,7 +262,10 @@ class PropertyEncoder(JSONEncoder):
             test = {}
             for key in obj.getAttributes():
                 test[str(key)] = str(obj.getAttributeValue(key))
-            return {"name":obj.getName(), "attributes":test}
+            prop = OrderedDict()
+            prop["name"] = obj.getName()
+            prop["attributes"] = test
+            return prop
         return json.JSONEncoder.default(self, obj)
 
 class PropertyDecoder(JSONDecoder):

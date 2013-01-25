@@ -65,14 +65,14 @@ class TestCreate(unittest.TestCase):
         '''
         Basic operations of creating, listing and deleting a Logbook object
         '''
-#        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
-#        testAttributes = {"attr":"test"}
-#        testProperty = Property(name='testProperty', attributes=testAttributes)
-#        client.createProperty(testProperty)
-#        self.assertTrue(testProperty in client.listProperties(), 'failed to create the testProperty')
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        testAttributes = {"attr":"test"}
+        testProperty = Property(name='testProperty', attributes=testAttributes)
+        client.createProperty(testProperty)
+        self.assertTrue(testProperty in client.listProperties(), 'failed to create the testProperty')
         '''Delete Property only deletes attributes in the service - will be fixed in the service'''
-#        client.delete(propertyName='testProperty')
-#        self.assertTrue(testProperty not in client.listProperties(), 'failed to cleanup the testProperty')
+        client.delete(propertyName='testProperty')
+        self.assertTrue(testProperty not in client.listProperties(), 'failed to cleanup the testProperty')
         
 class TestLogEntryCreation(unittest.TestCase):
     
@@ -130,7 +130,8 @@ class TestLogEntryCreation(unittest.TestCase):
         self.assertEqual(len(logEntries), 1, 'Failed to create log entry with attachment')
         attachments = client.listAttachments(logEntryId=logEntries[0].getId())
         self.assertEqual(len(attachments), 1, 'Failed to create log entry with attachment');
-        client.delete(logEntryId=logEntries[0].getId())       
+        client.delete(logEntryId=logEntries[0].getId()) 
+        self.assertEqual(len(client.find(text=text)),0, 'Failed to cleanup log entry with attachment')      
         client.delete(logbookName=testLogbook.getName())
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         pass
