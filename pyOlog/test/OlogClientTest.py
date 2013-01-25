@@ -128,7 +128,9 @@ class TestLogEntryCreation(unittest.TestCase):
         client.log(testLog)
         logEntries = client.find(text=text)
         self.assertEqual(len(logEntries), 1, 'Failed to create log entry with attachment')
-        self.assertEqual(len(logEntries[0].getAttachments()), 1, 'Failed to create log entry with attachment');       
+        attachments = client.listAttachments(logEntryId=logEntries[0].getId())
+        self.assertEqual(len(attachments), 1, 'Failed to create log entry with attachment');
+        client.delete(logEntryId=logEntries[0].getId())       
         client.delete(logbookName=testLogbook.getName())
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         pass

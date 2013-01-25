@@ -24,6 +24,7 @@ class OlogClient(object):
     __propertiesResource = '/resources/properties'
     __tagsResource = '/resources/tags'
     __logbooksResource = '/resources/logbooks'
+    __attachmentResource ='/resources/attachments'
 
     def __init__(self, url='https://localhost:8181/Olog', username=None, password=None):
         '''
@@ -39,6 +40,28 @@ class OlogClient(object):
                 self.__auth = auth.HTTPBasicAuth(username, password)
             else:
                 self.__auth = None
+            resp = requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader)
+            '''
+            try:
+                f = requests.get('https://localhost:8181/Olog/resources/attachments/3233/trend.png', verify=False, headers=self.__jsonheader)
+                print 'hello :', f
+                test = open('plot4.png', 'wb')
+                test.write(f.content)
+                file = {'file':open('redder.jpg', 'rb')}
+                imageFile = {'file' : Image.open('trend.png', 'r')}
+                header = {'content-type':'image/png'}
+                r = requests.post('https://localhost:8181/Olog/resources/attachments/3233', 
+                                  verify=False, 
+                                  auth=auth.HTTPBasicAuth('shroffk', '1234'), 
+                                  files=file
+                                  )
+                print r                
+            except:
+                print 'error'
+                raise
+#            print resp.json()
+#            print requests.get(self.__url+'/tags/Bumps', verify=False, headers=self.__jsonheader).json()
+'''
         except:
             raise
     
@@ -62,6 +85,8 @@ class OlogClient(object):
                                   files={'file':attachment.getFile()}
                                   )
             resp.raise_for_status()
+            
+            
     
     def createLogbook(self, logbook):
         '''
@@ -113,6 +138,28 @@ class OlogClient(object):
             logs.append(LogEntryDecoder().dictToLogEntry(jsonLogEntry))
         return logs
     
+    def listAttachments(self, logEntryId):
+        '''
+        Search for attachments on logentry _id_
+        '''
+        resp = requests.get(self.__url+self.__attachmentResource+'/'+str(logEntryId),
+                         verify=False,
+                         headers=self.__jsonheader)
+        resp.raise_for_status()
+        attachments = []
+        for jsonAttachment in resp.json().pop('attachment'):
+            fileName = jsonAttachment.pop('fileName')
+            print self.__url+self.__attachmentResource+'/'+str(logEntryId)+'/'+fileName
+            f = requests.get(self.__url+
+                             self.__attachmentResource+'/'+
+                             str(logEntryId)+'/'+
+                             fileName,
+                             verify=False)
+            test = open('tmp'+fileName, 'wb')
+            test.write(f.content)
+            attachments.append(Attachment(file=test))
+        return attachments           
+    
     def listTags(self):
         '''
         List all tags.
@@ -158,7 +205,10 @@ class OlogClient(object):
                         
     def delete(self, **kwds):
         '''
-        Method to delete a logbook, property, tag
+        Method to delete a logEntry, logbook, property, tag
+        delete(logEntryId = int)
+        >>> delete(logEntryId=1234)
+        
         delete(logbookName = String)
         >>> delete(logbookName = 'logbookName')
         
