@@ -78,7 +78,6 @@ class OlogClient(object):
         id = LogEntryDecoder().dictToLogEntry(resp.json()[0]).getId()
         '''Attachments'''
         for attachment in logEntry.getAttachments():
-            print 'hello', attachment.getFile()
             resp = requests.post('https://localhost:8181/Olog/resources/attachments/'+str(id), 
                                   verify=False, 
                                   auth=self.__auth, 
@@ -122,12 +121,12 @@ class OlogClient(object):
                      headers=self.__jsonheader,
                      auth=self.__auth).raise_for_status()
         
-    def find(self, text="*"):
+    def find(self, **kwds):
         '''
         Search for logEntries based on one or many search criteria
         '''
-        search = '*' + text + '*'
-        query_string = self.__url + self.__logsResource + '?' + urlencode(OrderedDict(search=search))
+        #search = '*' + text + '*'
+        query_string = self.__url + self.__logsResource + '?' + urlencode(OrderedDict(kwds))
         resp = requests.get(query_string,
                             verify=False,
                             headers=self.__jsonheader,
@@ -323,11 +322,15 @@ class LogEntryEncoder(JSONEncoder):
             tags = []
             for tag in obj.getTags():
                 tags.append(TagEncoder().default(tag))
+            properties = []
+            for property in obj.getProperties():
+                properties.append(PropertyEncoder().default(property))
             return [{"description":obj.getText(),
                    "owner":obj.getOwner(),
                    "level":"Info",
                    "logbooks":logbooks,
-                   "tags":tags}]
+                   "tags":tags,
+                   "properties":properties}]
         return json.JSONEncoder.default(self, obj)
 
 class LogEntryDecoder(JSONDecoder):

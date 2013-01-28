@@ -10,6 +10,7 @@ import unittest
 from pyOlog import OlogClient
 from pyOlog.OlogDataTypes import Tag, Logbook, Property, LogEntry, Attachment
 from datetime import datetime
+import time
 
 class Test(unittest.TestCase):
 
@@ -61,13 +62,13 @@ class TestCreate(unittest.TestCase):
         client.delete(logbookName='testLogbook')
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         
-    def testCreateProperty(self):
+    def CreateProperty(self):
         '''
         Basic operations of creating, listing and deleting a Logbook object
         '''
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testAttributes = {"attr":"test"}
-        testProperty = Property(name='testProperty', attributes=testAttributes)
+        testProperty = Property(name='testProperty32', attributes=testAttributes)
         client.createProperty(testProperty)
         self.assertTrue(testProperty in client.listProperties(), 'failed to create the testProperty')
         '''Delete Property only deletes attributes in the service - will be fixed in the service'''
@@ -80,13 +81,13 @@ class TestLogEntryCreation(unittest.TestCase):
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook)
-        text = 'test python log entry '+ datetime.now().isoformat(' ')
+        text = 'test python log entry ' + datetime.now().isoformat(' ')
         testLog = LogEntry(text=text, owner='testOwner', logbooks=[testLogbook])
         client.log(logEntry=testLog)
-        logEntries = client.find(text=testLog.getText())
+        logEntries = client.find(search=testLog.getText())
         self.assertTrue(len(logEntries) == 1, 'Failed to create test log entry')
         client.delete(logEntryId=logEntries[0].getId())
-        self.assertTrue(len(client.find(text=testLog.getText())) == 0, 'Failed to delete test log entry')
+        self.assertTrue(len(client.find(search=testLog.getText())) == 0, 'Failed to delete test log entry')
         client.delete(logbookName='testLogbook')
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         pass
@@ -97,17 +98,17 @@ class TestLogEntryCreation(unittest.TestCase):
         client.createLogbook(testLogbook);
         testTag = Tag(name='testTag')
         client.createTag(testTag)        
-        text = 'test python log entry with tag '+ datetime.now().isoformat(' ')
+        text = 'test python log entry with tag ' + datetime.now().isoformat(' ')
         testLog = LogEntry(text=text,
                            owner='testOwner',
                            logbooks=[testLogbook],
                            tags=[testTag])
         client.log(testLog)
-        logEntries = client.find(text=testLog.getText())
+        logEntries = client.find(search=testLog.getText())
         self.assertTrue(len(logEntries) == 1, 'Failed to create log Entry with Tag')
         self.assertTrue(testTag in logEntries[0].getTags(), 'testTag not attached to the testLogEntry')
         client.delete(logEntryId=logEntries[0].getId())
-        self.assertTrue(len(client.find(text=testLog.getText())) == 0, 'Failed to delete log Entry with Tag')
+        self.assertTrue(len(client.find(search=testLog.getText())) == 0, 'Failed to delete log Entry with Tag')
         client.delete(logbookName=testLogbook.getName())
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         client.delete(tagName=testTag.getName())
@@ -118,7 +119,7 @@ class TestLogEntryCreation(unittest.TestCase):
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook);
-        text = 'test python log entry with attachment '+ datetime.now().isoformat(' ')
+        text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
         testAttachment = Attachment(open('Desert.jpg', 'rb'))
         testLog = LogEntry(text=text,
                            owner='testOwner',
@@ -126,37 +127,91 @@ class TestLogEntryCreation(unittest.TestCase):
                            attachments=[testAttachment]
                            )
         client.log(testLog)
-        logEntries = client.find(text=text)
+        logEntries = client.find(search=text)
         self.assertEqual(len(logEntries), 1, 'Failed to create log entry with attachment')
         attachments = client.listAttachments(logEntryId=logEntries[0].getId())
         self.assertEqual(len(attachments), 1, 'Failed to create log entry with attachment');
         client.delete(logEntryId=logEntries[0].getId()) 
-        self.assertEqual(len(client.find(text=text)),0, 'Failed to cleanup log entry with attachment')      
+        self.assertEqual(len(client.find(search=text)), 0, 'Failed to cleanup log entry with attachment')      
         client.delete(logbookName=testLogbook.getName())
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         pass
     
-    def createEntryWithProperties(self):
+    def testCreateEntryWithProperties(self):
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        testLogbook = Logbook(name='testLogbook', owner='testOwner')
+        client.createLogbook(testLogbook);
+        testProperty = Property(name='testLogProperty', attributes={'id':None, 'url':None})
+#        client.createProperty(testProperty)
+        text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
+        property = Property(name='testLogProperty', attributes={'id':'prop1234', 'url':'www.bnl.gov'})
+        testLog = LogEntry(text=text,
+                           owner='testOwner',
+                           logbooks=[testLogbook],
+                           properties=[property]
+                           )
+        client.log(testLog)
+        logEntries = client.find(search=text)
+        self.assertEqual(len(logEntries), 1, 'Failed to create log entry with property')
+        properties = logEntries[0].getProperties()
+        self.assertIn(property, properties, 'TestLogEntry does not contain property ' + property.getName())
+        '''Cleanup'''
+        client.delete(logEntryId=logEntries[0].getId()) 
+        self.assertEqual(len(client.find(search=text)), 0, 'Failed to cleanup log entry with property') 
+        client.delete(logbookName=testLogbook.getName())
+        self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the ' + testLogbook.getName())
         pass
 
 class LogEntrySearchTest(unittest.TestCase):
     
-    def searchByText(self):
+    def setUp(self):
+        self.client = client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        self.text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
+        self.testAttachment = Attachment(open('Desert.jpg', 'rb'))
+        self.testLogbook = Logbook(name='testLogbook', owner='testOwner')
+        self.client.createLogbook(self.testLogbook);
+        self.testTag = Tag(name='testTag') 
+        self.client.createTag(self.testTag)               
+        self.testProperty = Property(name='testLogProperty', attributes={'id':'testSearchId', 'url':'www.bnl.gov'})
+        self.start = str(time.time()).split('.')[0]
+        client.log(LogEntry(text=self.text,
+                           owner='testOwner',
+                           logbooks=[self.testLogbook],
+                           tags=[self.testTag],
+                           attachments=[self.testAttachment],
+                           properties=[self.testProperty]))
+        self.end = str(time.time()).split('.')[0]
+        self.testLogEntry = client.find(search=self.text)[0]
+        pass
+
+    def tearDown(self):
+        self.client.delete(logbookName=self.testLogbook.getName())
+        self.client.delete(tagName=self.testTag.getName())
+        self.client.delete(logEntryId=self.testLogEntry.getId())
         pass
     
-    def searchByTag(self):
+    def testSearchByText(self):
+        self.assertIn(self.testLogEntry, self.client.find(search=self.text), 'Failed to search by text')
         pass
     
-    def searchByLogbook(self):
+    def testSearchByTag(self):
+        self.assertIn(self.testLogEntry, self.client.find(tag=self.testTag.getName()), 'Failed to search by Tag')
         pass
     
-    def searchByProperty(self):
+    def testSearchByLogbook(self):
+        self.assertIn(self.testLogEntry, self.client.find(logbook=self.testLogbook.getName()), 'Failed to search by logbook')
         pass
     
-    def searchByTime(self):
+    def testSearchByProperty(self):
+        self.assertIn(self.testLogEntry, self.client.find(property=self.testProperty.getName()), 'Failed to search by property')
         pass
     
-    def searchByMultipleParamerters(self):
+    def testSearchByTime(self):
+        self.assertIn(self.testLogEntry, self.client.find(start=self.start, end=self.end))
+        pass
+    
+    def testSearchByMultipleParamerters(self):
+        self.assertIn(self.testLogEntry, self.client.find(search=self.text, tag=self.testTag.getName(), logbook=self.testLogbook.getName()))
         pass
     
 if __name__ == "__main__":
