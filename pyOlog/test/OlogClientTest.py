@@ -106,7 +106,7 @@ class TestLogEntryCreation(unittest.TestCase):
         client.log(testLog)
         logEntries = client.find(search=testLog.getText())
         self.assertTrue(len(logEntries) == 1, 'Failed to create log Entry with Tag')
-        self.assertTrue(testTag in logEntries[0].getTags(), 'testTag not attached to the testLogEntry')
+        self.assertTrue(testTag in logEntries[0].getTags(), 'testTag not attached to the testLogEntry1')
         client.delete(logEntryId=logEntries[0].getId())
         self.assertTrue(len(client.find(search=testLog.getText())) == 0, 'Failed to delete log Entry with Tag')
         client.delete(logbookName=testLogbook.getName())
@@ -173,45 +173,57 @@ class LogEntrySearchTest(unittest.TestCase):
         self.testTag = Tag(name='testTag') 
         self.client.createTag(self.testTag)               
         self.testProperty = Property(name='testLogProperty', attributes={'id':'testSearchId', 'url':'www.bnl.gov'})
-        self.start = str(time.time()).split('.')[0]
+        self.t1 = str(time.time()).split('.')[0]
         client.log(LogEntry(text=self.text,
                            owner='testOwner',
                            logbooks=[self.testLogbook],
                            tags=[self.testTag],
                            attachments=[self.testAttachment],
                            properties=[self.testProperty]))
-        self.end = str(time.time()).split('.')[0]
-        self.testLogEntry = client.find(search=self.text)[0]
+        self.t2 = str(time.time()).split('.')[0]
+        client.log(LogEntry(text=self.text + ' - entry2',
+                           owner='testOwner',
+                           logbooks=[self.testLogbook]))
+        self.t3 = str(time.time()).split('.')[0]
+        self.testLogEntry1 = client.find(search=self.text)[0]
+        self.testLogEntry2 = client.find(search=self.text + ' - entry2')[0]
         pass
 
     def tearDown(self):
         self.client.delete(logbookName=self.testLogbook.getName())
         self.client.delete(tagName=self.testTag.getName())
-        self.client.delete(logEntryId=self.testLogEntry.getId())
+        self.client.delete(logEntryId=self.testLogEntry1.getId())
+        self.client.delete(logEntryId=self.testLogEntry2.getId())
         pass
     
     def testSearchByText(self):
-        self.assertIn(self.testLogEntry, self.client.find(search=self.text), 'Failed to search by text')
+        self.assertIn(self.testLogEntry1, self.client.find(search=self.text), 'Failed to search by text')
         pass
     
     def testSearchByTag(self):
-        self.assertIn(self.testLogEntry, self.client.find(tag=self.testTag.getName()), 'Failed to search by Tag')
+        self.assertIn(self.testLogEntry1, self.client.find(tag=self.testTag.getName()), 'Failed to search by Tag')
         pass
     
     def testSearchByLogbook(self):
-        self.assertIn(self.testLogEntry, self.client.find(logbook=self.testLogbook.getName()), 'Failed to search by logbook')
+        self.assertIn(self.testLogEntry1, self.client.find(logbook=self.testLogbook.getName()), 'Failed to search by logbook')
         pass
     
     def testSearchByProperty(self):
-        self.assertIn(self.testLogEntry, self.client.find(property=self.testProperty.getName()), 'Failed to search by property')
+        self.assertIn(self.testLogEntry1, self.client.find(property=self.testProperty.getName()), 'Failed to search by property')
         pass
     
     def testSearchByTime(self):
-        self.assertIn(self.testLogEntry, self.client.find(start=self.start, end=self.end))
+        self.assertIn(self.testLogEntry1, self.client.find(start=self.t1, end=self.t2), 'Failed to search by time')
+        logEntries = self.client.find(start=self.t1, end=self.t3)
+        self.assertIn(self.testLogEntry1, logEntries, 'Failed to search by time')
+        self.assertIn(self.testLogEntry2, logEntries, 'Failed to search by time')
         pass
     
     def testSearchByMultipleParamerters(self):
-        self.assertIn(self.testLogEntry, self.client.find(search=self.text, tag=self.testTag.getName(), logbook=self.testLogbook.getName()))
+        self.assertIn(self.testLogEntry1, self.client.find(search=self.text, tag=self.testTag.getName(), logbook=self.testLogbook.getName()))
+        logEntries =  self.client.find(start=self.t1, end=self.t3, tag=self.testTag.getName())
+        self.assertIn(self.testLogEntry1, logEntries, 'Failed to search by time and tag')
+        self.assertNotIn(self.testLogEntry2, logEntries, 'Failed to correctly search by time and tag')
         pass
     
 if __name__ == "__main__":

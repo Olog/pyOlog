@@ -8,7 +8,7 @@ Created on Jan 10, 2013
 '''
 import requests
 from json import JSONEncoder, JSONDecoder
-from OlogDataTypes import *
+from OlogDataTypes import LogEntry, Logbook, Tag, Property, Attachment
 import json
 from requests import auth
 import logging
@@ -41,27 +41,6 @@ class OlogClient(object):
             else:
                 self.__auth = None
             resp = requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader)
-            '''
-            try:
-                f = requests.get('https://localhost:8181/Olog/resources/attachments/3233/trend.png', verify=False, headers=self.__jsonheader)
-                print 'hello :', f
-                test = open('plot4.png', 'wb')
-                test.write(f.content)
-                file = {'file':open('redder.jpg', 'rb')}
-                imageFile = {'file' : Image.open('trend.png', 'r')}
-                header = {'content-type':'image/png'}
-                r = requests.post('https://localhost:8181/Olog/resources/attachments/3233', 
-                                  verify=False, 
-                                  auth=auth.HTTPBasicAuth('shroffk', '1234'), 
-                                  files=file
-                                  )
-                print r                
-            except:
-                print 'error'
-                raise
-#            print resp.json()
-#            print requests.get(self.__url+'/tags/Bumps', verify=False, headers=self.__jsonheader).json()
-'''
         except:
             raise
     
@@ -124,6 +103,26 @@ class OlogClient(object):
     def find(self, **kwds):
         '''
         Search for logEntries based on one or many search criteria
+        >> find(search='*Timing*')
+        find logentries with the text Timing in the description
+        
+        >> find(tag='magnets')
+        find log entries with the a tag named 'magnets'
+        
+        >> find(logbook='controls')
+        find log entries in the logbook named 'controls'
+        
+        >> find(property='context')
+        find log entires with property named 'context'
+        
+        >> find(start=str(time.time() - 3600)
+        find the log entries made in the last hour
+        >> find(start=123243434, end=123244434)
+        find all the log entries made between the epoc times 123243434 and 123244434
+        
+        Searching using multiple criteria
+        >>find(logbook='contorls', tag='magnets')
+        find all the log entries in logbook 'controls' AND with tag named 'magnets'
         '''
         #search = '*' + text + '*'
         query_string = self.__url + self.__logsResource + '?' + urlencode(OrderedDict(kwds))
