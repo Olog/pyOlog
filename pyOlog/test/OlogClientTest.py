@@ -131,6 +131,34 @@ class TestLogEntryCreation(unittest.TestCase):
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         pass
     
+    def testCreateEntryWithMultipleAttributes(self):
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        text = 'test python log entry with multiple attributes ' + datetime.now().isoformat(' ')
+        testImageAttachment = Attachment(open('Desert.jpg', 'rb'))
+        testTextAttachment = Attachment(open('debug.log','rb'))
+        logbooks = client.listLogbooks()
+        tags = client.listTags()
+        properties = client.listProperties()    
+#        for property in properties:
+#            for attribute in property.getAttributeNames():
+#                property.Attributes[attribute] = 'testValue'+attribute
+        testLog = LogEntry(text=text,
+                           owner='testOwner',
+                           logbooks=logbooks,
+                           tags=tags,
+#                           properties=properties,
+                           attachments=[testImageAttachment, testTextAttachment]
+                           )
+        client.log(testLog)
+        logEntries = client.find(search=text)
+        self.assertEqual(len(logEntries), 1, 'Failed to create log entry with multiple attributes')
+        logEntry = logEntries[0]
+        self.assertListEqual(logbooks, logEntry.getLogbooks(), 'Failed to create log entry with all the logbooks')
+        self.assertListEqual(tags, logEntry.getTags(), 'Failed to create log entry with all the tags')
+#        self.assertListEqual(properties, logEntry.getProperties(), 'Failed to create log Entry with all the properties')
+        client.delete(logEntryId=logEntry.getId()) 
+        self.assertEqual(len(client.find(search=text)), 0, 'Failed to cleanup log entry with attachment')      
+    
     def testCreateEntryWithProperties(self):
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
