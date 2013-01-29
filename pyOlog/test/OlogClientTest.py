@@ -8,23 +8,9 @@ Created on Jan 9, 2013
 '''
 import unittest
 from pyOlog import OlogClient
-from pyOlog.OlogDataTypes import Tag, Logbook, Property, LogEntry, Attachment
+from pyOlog import Tag, Logbook, Property, LogEntry, Attachment
 from datetime import datetime
 import time
-
-class Test(unittest.TestCase):
-
-
-    def setUp(self):
-        pass
-
-
-    def tearDown(self):
-        pass
-
-
-    def testName(self):
-        pass
 
 class TestCreateClient(unittest.TestCase):
     
@@ -82,7 +68,9 @@ class TestLogEntryCreation(unittest.TestCase):
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook)
         text = 'test python log entry ' + datetime.now().isoformat(' ')
-        testLog = LogEntry(text=text, owner='testOwner', logbooks=[testLogbook])
+        testLog = LogEntry(text=text,
+                           owner='testOwner',
+                           logbooks=[testLogbook])
         client.log(logEntry=testLog)
         logEntries = client.find(search=testLog.getText())
         self.assertTrue(len(logEntries) == 1, 'Failed to create test log entry')
@@ -107,6 +95,7 @@ class TestLogEntryCreation(unittest.TestCase):
         logEntries = client.find(search=testLog.getText())
         self.assertTrue(len(logEntries) == 1, 'Failed to create log Entry with Tag')
         self.assertTrue(testTag in logEntries[0].getTags(), 'testTag not attached to the testLogEntry1')
+        '''cleanup'''
         client.delete(logEntryId=logEntries[0].getId())
         self.assertTrue(len(client.find(search=testLog.getText())) == 0, 'Failed to delete log Entry with Tag')
         client.delete(logbookName=testLogbook.getName())
@@ -119,18 +108,23 @@ class TestLogEntryCreation(unittest.TestCase):
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook);
-        text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
-        testAttachment = Attachment(open('Desert.jpg', 'rb'))
+        text = 'test python log entry with attachments ' + datetime.now().isoformat(' ')
+        testImageAttachment = Attachment(open('Desert.jpg', 'rb'))
+        testTextAttachment = Attachment(open('debug.log','rb'))
         testLog = LogEntry(text=text,
                            owner='testOwner',
                            logbooks=[testLogbook],
-                           attachments=[testAttachment]
+                           attachments=[testImageAttachment, testTextAttachment]
                            )
         client.log(testLog)
         logEntries = client.find(search=text)
         self.assertEqual(len(logEntries), 1, 'Failed to create log entry with attachment')
         attachments = client.listAttachments(logEntryId=logEntries[0].getId())
-        self.assertEqual(len(attachments), 1, 'Failed to create log entry with attachment');
+        self.assertEqual(len(attachments), 2, 'Failed to create log entry with attachment');
+        for attachment in attachments:
+            if attachment.getFile().name.endswith('.log'):
+                print attachment.getFile().readline()
+                print attachment.getFile().fileno(), open('debug.log','rb').fileno()      
         client.delete(logEntryId=logEntries[0].getId()) 
         self.assertEqual(len(client.find(search=text)), 0, 'Failed to cleanup log entry with attachment')      
         client.delete(logbookName=testLogbook.getName())

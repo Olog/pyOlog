@@ -60,8 +60,9 @@ class TestAttachment(unittest.TestCase):
     def testCreateAttachment(self):
         '''
         '''
-        attachment = Attachment(file=open('Desert.jpg'))
-        
+        attachment = Attachment(file=open('debug.log', 'rb'))
+        self.assertEqual(open('debug.log', 'rb').readline(), attachment.getFile().readline(), 
+                         "Failed to correctly create an attachment object with a file")
         pass
       
 class LogEntryTest(unittest.TestCase):

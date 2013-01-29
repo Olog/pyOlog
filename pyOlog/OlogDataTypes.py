@@ -113,6 +113,7 @@ class Tag(object):
 class Attachment(object):
     '''
     A Attachment, a file associated with the log entry
+    TODO this is not thread safe
     '''
     
     def __init__(self, file):

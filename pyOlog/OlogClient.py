@@ -14,6 +14,7 @@ from requests import auth
 import logging
 from urllib import urlencode
 from collections import OrderedDict
+import tempfile
 
 class OlogClient(object):
     '''
@@ -148,15 +149,15 @@ class OlogClient(object):
         attachments = []
         for jsonAttachment in resp.json().pop('attachment'):
             fileName = jsonAttachment.pop('fileName')
-            print self.__url+self.__attachmentResource+'/'+str(logEntryId)+'/'+fileName
             f = requests.get(self.__url+
                              self.__attachmentResource+'/'+
                              str(logEntryId)+'/'+
                              fileName,
                              verify=False)
-            test = open('tmp'+fileName, 'wb')
-            test.write(f.content)
-            attachments.append(Attachment(file=test))
+            testFile = tempfile.NamedTemporaryFile(delete=False)
+            testFile.name = fileName
+            testFile.write(f.content)
+            attachments.append(Attachment(file=testFile))
         return attachments           
     
     def listTags(self):
