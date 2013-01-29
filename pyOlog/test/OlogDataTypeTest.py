@@ -46,7 +46,7 @@ class TestProperty(unittest.TestCase):
         A Property consists of a name(required) and a set of attributes
         '''      
         attributes = {'attribute1':'attribute1Value', 'attribute2':'attribute2Value'}
-        property1 = Property(name='propertyName', attributes=attributes)
+        property1 = Property('propertyName', attributes=attributes)
         self.assertEqual(property1.getName(), 'propertyName', '')
         self.assertEqual(property1.getAttributes(), attributes , '')
         self.assertEqual(set(property1.getAttributeNames()), set(['attribute1', 'attribute2']), '')

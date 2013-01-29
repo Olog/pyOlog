@@ -6,16 +6,26 @@ Created on Jan 10, 2013
 
 @author: shroffk
 '''
-import exceptions
 
 class LogEntry(object):
     '''
-    classdocs
+    A LogEntry consists of some Text description, an owner and an associated logbook
+    It can optionally be associated with one or more logbooks and contain one or more tags, properties and attachments
     '''
 
     def __init__(self, text, owner, logbooks, tags=[], attachments=[], properties=[], id=None, createTime=None, modifyTime=None):
         '''
-        Constructor
+        Constructor for log Entry
+        Simple LogEntry
+        >> LogEntry('test log entry', 'controls', logbooks=[Logbook('commissioning', owner='controls')])
+        
+        Comprehensive logEntry
+        >> LogEntry('test log entry', 'controls', 
+                    logbooks=[Logbook('commissioning', owner='controls')],
+                    tags=[Tag('TimingSystem')]
+                    properties=[Property('Ticket', attributes={'Id':'1234','URL':'http://trac.nsls2.bnl.gov/trac/1234'}]
+                    attachments=[Attachment(open('databrowser.plt'))]
+                    )
         '''
         self.Text = str(text).strip();
         self.Owner = str(owner).strip();
@@ -65,12 +75,15 @@ class LogEntry(object):
         
 class Logbook(object):
     '''
-    classdocs
+    A Logbook consist of an unique name and an owner, 
+    logentries can be added to a logbook so long as the user either the owner
+    or a member of the owner group
     '''
 
     def __init__(self, name, owner):
         '''
-        Constructor
+        Create a logbook
+        >> Logbook('commissioning', 'controls')
         '''
         self.__Name = str(name).strip();
         self.__Owner = str(owner).strip();
@@ -88,13 +101,13 @@ class Logbook(object):
            
 class Tag(object):
     '''
-    A Tag consists of a unique name, it is used to tag logEntries to enable quering and organization 
+    A Tag consists of a unique name, it is used to tag logEntries to enable querying and organizing log Entries
     '''
-
 
     def __init__(self, name, state="Active"):
         '''
-        Constructor
+        Create a Tag object
+        >> Tag('TimingSystem')
         '''
         self.__Name = str(name).strip()
         self.__State = str(state).strip()
@@ -113,10 +126,15 @@ class Tag(object):
 class Attachment(object):
     '''
     A Attachment, a file associated with the log entry
-    TODO this is not thread safe
+    TODO this is not thread safe    
     '''
     
     def __init__(self, file):
+        '''
+        Create Attachment 
+        >> Attachment(file=open('/home/usr/databrowser.plt')
+        >> Attachment(file=open('test.jpg','rb')
+        '''
         self.__file=file
         
     def getFile(self):
@@ -124,14 +142,14 @@ class Attachment(object):
 
 class Property(object):
     '''
-    A property consists of a unique name and a set of attributes consisting of key value pairs
-    e.g.
-    Property('Ticket', attributes={'Id':'1234','URL':'http://trac.nsls2.bnl.gov/trac/1234'}
-    Property('Scan', attributes={'Number':'run-1234', 'script':'scan_20130117.py'}
+    A property consists of a unique name and a set of attributes consisting of key value pairs   
     '''
     
     def __init__(self, name, attributes=None):
         '''
+        Create a property with a unique name and attributes
+        >> Property('Ticket', attributes={'Id':'1234','URL':'http://trac.nsls2.bnl.gov/trac/1234'}
+        >> Property('Scan', attributes={'Number':'run-1234', 'script':'scan_20130117.py'}
         '''
         self.__Name = str(name).strip()
         self.Attributes = attributes
