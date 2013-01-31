@@ -6,14 +6,14 @@ Created on Jan 10, 2013
 
 @author: shroffk
 '''
-from setuptools import setup, find_packages
 
-print find_packages()
+from distutils.core import setup
+
 
 setup(name='pyOlog',
       version='0.1.0',
       description='Python Olog Client Lib',
       author='Kunal Shroff',
       author_email='shroffk@bnl.gov',
-      packages=find_packages(),
+      packages=['pyOlog']
      )

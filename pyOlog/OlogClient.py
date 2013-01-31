@@ -41,7 +41,7 @@ class OlogClient(object):
                 self.__auth = auth.HTTPBasicAuth(username, password)
             else:
                 self.__auth = None
-            resp = requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader)
+            requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader).raise_for_status()
         except:
             raise
     
