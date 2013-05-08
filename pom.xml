@@ -1,0 +1,59 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>olog</artifactId>
+        <groupId>edu.msu.nscl.olog</groupId>
+        <relativePath>../../</relativePath>
+        <version>2.2.3-SNAPSHOT</version>
+    </parent>
+    <artifactId>pyOlog</artifactId>
+    <url>http://olog.github.com/</url>
+    <scm>
+        <connection>scm:git:https://github.com/Olog/pyOlog.git</connection>
+        <developerConnection>scm:git:https://github.com/Olog/pyOlog.git</developerConnection>
+        <url>https://github.com/Olog/pyOlog</url>
+    </scm>
+    <issueManagement>
+        <system>jira</system>
+        <url>http://java.net/jira/browse/OLOG/component/14887</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://openepics.ci.cloudbees.com/view/Olog/</url>
+    </ciManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.7.1</version>
+                <configuration>
+                    <columnNames>Fix Version,Priority,Type,Summary,Assignee,Key,Status,Resolution</columnNames>
+                    <sortColumnNames>Fix Version,Priority,Key DESC</sortColumnNames>
+                    <component>pyOlog</component>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>jira-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>
+
