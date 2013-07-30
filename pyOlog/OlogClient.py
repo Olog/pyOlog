@@ -9,6 +9,7 @@ Created on Jan 10, 2013
 import requests
 from json import JSONEncoder, JSONDecoder
 from OlogDataTypes import LogEntry, Logbook, Tag, Property, Attachment
+from _conf import _conf
 import json
 from requests import auth
 import logging
@@ -25,18 +26,18 @@ class OlogClient(object):
     __propertiesResource = '/resources/properties'
     __tagsResource = '/resources/tags'
     __logbooksResource = '/resources/logbooks'
-    __attachmentResource ='/resources/attachments'
+    __attachmentResource = '/resources/attachments'
 
-    def __init__(self, url='https://localhost:8181/Olog', username=None, password=None):
+    def __init__(self, url=None, username=None, password=None):
         '''
         Constructor
         '''
         try:     
             requests_log = logging.getLogger("requests")
             requests_log.setLevel(logging.DEBUG)
-            self.__url = url
-            self.__username = username
-            self.__password = password
+            self.__url = self.__getDefaultConfig('url', url)
+            self.__username = self.__getDefaultConfig('username', username)
+            self.__password = self.__getDefaultConfig('password', password)
             if username and password:
                 self.__auth = auth.HTTPBasicAuth(username, password)
             else:
@@ -44,6 +45,15 @@ class OlogClient(object):
             requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader).raise_for_status()
         except:
             raise
+    
+    def __getDefaultConfig(self, arg, value):
+        '''
+        If Value is None, this will try to find the value in one of the configuration files
+        '''
+        if value == None and _conf.has_option('DEFAULT', arg):
+            return _conf.get('DEFAULT', arg)
+        else:
+            return value
     
     def log(self, logEntry):
         '''
@@ -58,9 +68,9 @@ class OlogClient(object):
         id = LogEntryDecoder().dictToLogEntry(resp.json()[0]).getId()
         '''Attachments'''
         for attachment in logEntry.getAttachments():
-            resp = requests.post('https://localhost:8181/Olog/resources/attachments/'+str(id), 
-                                  verify=False, 
-                                  auth=self.__auth, 
+            resp = requests.post(self.__url + self.__attachmentResource +'/'+ str(id),
+                                  verify=False,
+                                  auth=self.__auth,
                                   files={'file':attachment.getFile()}
                                   )
             resp.raise_for_status()
@@ -239,11 +249,12 @@ class OlogClient(object):
                         headers=self.__jsonheader,
                         auth=self.__auth).raise_for_status()
             pass
-        elif 'propertyName' in kwds:
+        elif 'propertyName' in kwds:               
             requests.delete(self.__url + self.__propertiesResource + '/' + kwds['propertyName'].strip(),
-                        verify=False,
-                        headers=self.__jsonheader,
-                        auth=self.__auth).raise_for_status()
+                            data=PropertyEncoder().encode(Property(kwds['propertyName'].strip(), attributes={})),
+                            verify=False,
+                            headers=self.__jsonheader,
+                            auth=self.__auth).raise_for_status()
             pass
         elif 'logEntryId' in kwds:
             requests.delete(self.__url + self.__logsResource + '/' + str(kwds['logEntryId']).strip(),

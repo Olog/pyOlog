@@ -11,6 +11,8 @@ from pyOlog import OlogClient
 from pyOlog import Tag, Logbook, Property, LogEntry, Attachment
 from datetime import datetime
 import time
+import os
+from pyOlog.test.OlogDataTypeTest import TestProperty
 
 class TestCreateClient(unittest.TestCase):
     
@@ -48,7 +50,7 @@ class TestCreate(unittest.TestCase):
         client.delete(logbookName='testLogbook')
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         
-    def CreateProperty(self):
+    def testCreateProperty(self):
         '''
         Basic operations of creating, listing and deleting a Logbook object
         '''
@@ -58,7 +60,7 @@ class TestCreate(unittest.TestCase):
         client.createProperty(testProperty)
         self.assertTrue(testProperty in client.listProperties(), 'failed to create the testProperty')
         '''Delete Property only deletes attributes in the service - will be fixed in the service'''
-        client.delete(propertyName='testProperty')
+        client.delete(propertyName='testProperty32')
         self.assertTrue(testProperty not in client.listProperties(), 'failed to cleanup the testProperty')
         
 class TestLogEntryCreation(unittest.TestCase):
@@ -110,7 +112,7 @@ class TestLogEntryCreation(unittest.TestCase):
         client.createLogbook(testLogbook);
         text = 'test python log entry with attachments ' + datetime.now().isoformat(' ')
         testImageAttachment = Attachment(open('Desert.jpg', 'rb'))
-        testTextAttachment = Attachment(open('debug.log','rb'))
+        testTextAttachment = Attachment(open('debug.log', 'rb'))
         testLog = LogEntry(text=text,
                            owner='testOwner',
                            logbooks=[testLogbook],
@@ -124,7 +126,7 @@ class TestLogEntryCreation(unittest.TestCase):
         for attachment in attachments:
             if attachment.getFile().name.endswith('.log'):
                 print attachment.getFile().readline()
-                print attachment.getFile().fileno(), open('debug.log','rb').fileno()      
+                print attachment.getFile().fileno(), open('debug.log', 'rb').fileno()      
         client.delete(logEntryId=logEntries[0].getId()) 
         self.assertEqual(len(client.find(search=text)), 0, 'Failed to cleanup log entry with attachment')      
         client.delete(logbookName=testLogbook.getName())
@@ -135,7 +137,7 @@ class TestLogEntryCreation(unittest.TestCase):
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         text = 'test python log entry with multiple attributes ' + datetime.now().isoformat(' ')
         testImageAttachment = Attachment(open('Desert.jpg', 'rb'))
-        testTextAttachment = Attachment(open('debug.log','rb'))
+        testTextAttachment = Attachment(open('debug.log', 'rb'))
         logbooks = client.listLogbooks()
         tags = client.listTags()
         properties = client.listProperties()    
@@ -183,39 +185,68 @@ class TestLogEntryCreation(unittest.TestCase):
         client.delete(logbookName=testLogbook.getName())
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the ' + testLogbook.getName())
         pass
+    
+    def testProcess(self):
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        property = Property(name='Process',
+                            attributes={'processType':'diffCalc',
+                                        'processId':'1234',
+                                        'processAttchments':'rawDataFile.txt'})
+        # load Data
+        client.log(LogEntry(text='Initial setup',
+                           owner='experimenter',
+                           logbooks=[Logbook(name='Experimental Logbook')],
+                           properties=[property],
+                           attachments=[Attachment(open('rawDataFile.txt', 'rb'))]
+                           ))
+        # run scan
+        property = Property(name='Process',
+                            attributes={'processType':'diffCalc.process',
+                                        'processId':'1234',
+                                        'processAttchments':'.txt'})
+        client.log(LogEntry(text='Initial setup',
+                           owner='experimenter',
+                           logbooks=[Logbook(name='Experimental Logbook')],
+                           properties=[property]
+                           ))
+        
 
 class LogEntrySearchTest(unittest.TestCase):
-    
-    def setUp(self):
-        self.client = client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
-        self.text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
-        self.testAttachment = Attachment(open('Desert.jpg', 'rb'))
-        self.testLogbook = Logbook(name='testLogbook', owner='testOwner')
-        self.client.createLogbook(self.testLogbook);
-        self.testTag = Tag(name='testTag') 
-        self.client.createTag(self.testTag)               
-        self.testProperty = Property(name='testLogProperty', attributes={'id':'testSearchId', 'url':'www.bnl.gov'})
-        self.t1 = str(time.time()).split('.')[0]
-        client.log(LogEntry(text=self.text,
+           
+    @classmethod
+    def setUpClass(cls):
+        cls.client = client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        cls.text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
+        cls.testAttachment = Attachment(open('Desert.jpg', 'rb'))
+        cls.testLogbook = Logbook(name='testLogbook', owner='testOwner')
+        cls.client.createLogbook(cls.testLogbook);
+        cls.testTag = Tag(name='testTag') 
+        cls.client.createTag(cls.testTag)               
+        cls.testProperty = Property(name='testLogProperty', attributes={'id':'testSearchId', 'url':'www.bnl.gov'})
+        cls.client.createProperty(cls.testProperty)
+        cls.t1 = str(time.time()).split('.')[0]
+        client.log(LogEntry(text=cls.text,
                            owner='testOwner',
-                           logbooks=[self.testLogbook],
-                           tags=[self.testTag],
-                           attachments=[self.testAttachment],
-                           properties=[self.testProperty]))
-        self.t2 = str(time.time()).split('.')[0]
-        client.log(LogEntry(text=self.text + ' - entry2',
+                           logbooks=[cls.testLogbook],
+                           tags=[cls.testTag],
+                           attachments=[cls.testAttachment],
+                           properties=[cls.testProperty]))
+        cls.t2 = str(time.time()).split('.')[0]
+        client.log(LogEntry(text=cls.text + ' - entry2',
                            owner='testOwner',
-                           logbooks=[self.testLogbook]))
-        self.t3 = str(time.time()).split('.')[0]
-        self.testLogEntry1 = client.find(search=self.text)[0]
-        self.testLogEntry2 = client.find(search=self.text + ' - entry2')[0]
+                           logbooks=[cls.testLogbook]))
+        cls.t3 = str(time.time()).split('.')[0]
+        cls.testLogEntry1 = client.find(search=cls.text)[0]
+        cls.testLogEntry2 = client.find(search=cls.text + ' - entry2')[0]
         pass
 
-    def tearDown(self):
-        self.client.delete(logbookName=self.testLogbook.getName())
-        self.client.delete(tagName=self.testTag.getName())
-        self.client.delete(logEntryId=self.testLogEntry1.getId())
-        self.client.delete(logEntryId=self.testLogEntry2.getId())
+    @classmethod
+    def tearDownClass(cls):        
+        cls.client.delete(logbookName=cls.testLogbook.getName())
+        cls.client.delete(tagName=cls.testTag.getName())
+        cls.client.delete(propertyName=cls.testProperty.getName())
+        cls.client.delete(logEntryId=cls.testLogEntry1.getId())
+        cls.client.delete(logEntryId=cls.testLogEntry2.getId())
         pass
     
     def testSearchByText(self):
@@ -243,7 +274,7 @@ class LogEntrySearchTest(unittest.TestCase):
     
     def testSearchByMultipleParamerters(self):
         self.assertIn(self.testLogEntry1, self.client.find(search=self.text, tag=self.testTag.getName(), logbook=self.testLogbook.getName()))
-        logEntries =  self.client.find(start=self.t1, end=self.t3, tag=self.testTag.getName())
+        logEntries = self.client.find(start=self.t1, end=self.t3, tag=self.testTag.getName())
         self.assertIn(self.testLogEntry1, logEntries, 'Failed to search by time and tag')
         self.assertNotIn(self.testLogEntry2, logEntries, 'Failed to correctly search by time and tag')
         pass
