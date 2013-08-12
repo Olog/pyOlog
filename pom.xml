@@ -8,10 +8,14 @@
     </parent>
     <artifactId>pyOlog</artifactId>
     <url>http://olog.github.com/</url>
+    <properties>
+        <github.projectName>pyOlog</github.projectName>
+	<github.projectOwner>Olog</github.projectOwner>
+    </properties>
     <scm>
-        <connection>scm:git:ssh://git@github.com/Olog/pyOlog.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/Olog/pyOlog.git</developerConnection>
-        <url>ssh://git@github.com/Olog/pyOlog.git</url>
+        <connection>scm:git:ssh://git@github.com/${github.projectOwner}/${github.projectName}.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/${github.projectOwner}/${github.projectName}.git</developerConnection>
+        <url>ssh://git@github.com/${github.projectOwner}/${github.projectName}.git</url>
     </scm>
     <issueManagement>
         <system>jira</system>
