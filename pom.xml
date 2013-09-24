@@ -26,6 +26,16 @@
         <system>Jenkins</system>
         <url>https://openepics.ci.cloudbees.com/view/Olog/</url>
     </ciManagement>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>doodleproject-repo</id>
+            <name>DoodleProject Maven 2 Repository</name>
+            <url>http://doodleproject.sourceforge.net/maven2/release</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
     <build>
         <plugins>
             <plugin>
@@ -58,9 +68,9 @@
                 </reportSets>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.7</version>
+                <groupId>net.sf.doodleproject</groupId>
+                <artifactId>doxygen-maven-plugin</artifactId>
+                <version>2.2</version>
             </plugin>
         </plugins>
     </reporting>
