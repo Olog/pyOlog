@@ -67,6 +67,7 @@
 			<filePatterns>*.py</filePatterns>
 			<recursive>yes</recursive>
 			<exclude>./pyOlog/test</exclude>
+			<htmlOutput>html</htmlOutput>
                 </configuration>
              </plugin>
         </plugins>
