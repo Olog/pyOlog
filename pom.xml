@@ -61,6 +61,13 @@
                 <groupId>com.soebes.maven.plugins.dmg</groupId>
                 <artifactId>doxygen-maven-plugin</artifactId>
                 <version>1.0.1</version>
+                <configuration>
+			<projectName>Python Olog Client Library</projectName>
+			<input>./pyOlog</input>
+			<filePatterns>*.py</filePatterns>
+			<recursive>yes</recursive>
+			<exclude>./pyOlog/test</exclude>
+                </configuration>
              </plugin>
         </plugins>
     </reporting>
