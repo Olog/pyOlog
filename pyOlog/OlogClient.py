@@ -38,8 +38,8 @@ class OlogClient(object):
             self.__url = self.__getDefaultConfig('url', url)
             self.__username = self.__getDefaultConfig('username', username)
             self.__password = self.__getDefaultConfig('password', password)
-            if username and password:
-                self.__auth = auth.HTTPBasicAuth(username, password)
+            if self.__username and self.__password:
+                self.__auth = auth.HTTPBasicAuth(self.__username, self.__password)
             else:
                 self.__auth = None
             requests.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader).raise_for_status()
