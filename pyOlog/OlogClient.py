@@ -26,7 +26,7 @@ class OlogClient(object):
     classdocs
     '''
     __jsonheader = {'content-type':'application/json', 'accept':'application/json'}
-    __logsResource = '/resources/logs'
+    __logsResource = '/resources/logs' 
     __propertiesResource = '/resources/properties'
     __tagsResource = '/resources/tags'
     __logbooksResource = '/resources/logbooks'
@@ -194,7 +194,7 @@ class OlogClient(object):
         '''
         List all logbooks
         '''
-        resp = requests.get(self.__url + self.__logbooksResource,
+        resp = self.__session.get(self.__url + self.__logbooksResource,
                             verify=False,
                             headers=self.__jsonheader,
                             auth=self.__auth)
