@@ -80,7 +80,7 @@ class Logbook(object):
     or a member of the owner group
     '''
 
-    def __init__(self, name, owner):
+    def __init__(self, name, owner=None):
         '''
         Create a logbook
         >> Logbook('commissioning', 'controls')

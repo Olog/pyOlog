@@ -50,20 +50,34 @@ class TestCreate(unittest.TestCase):
         client.delete(logbookName='testLogbook')
         self.assertTrue(testLogbook not in client.listLogbooks(), 'failed to cleanup the testLogbook')
         
-    def testCreateProperty(self):
+    def CreateProperty(self):
         '''
-        Basic operations of creating, listing and deleting a Logbook object
+        Basic operations of creating, listing and deleting a property object
+        TODO: the cleanup needs to be resolved
         '''
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         testAttributes = {"attr":"test"}
-        testProperty = Property(name='testProperty32', attributes=testAttributes)
+        testProperty = Property(name='testProperty31', attributes=testAttributes)
         client.createProperty(testProperty)
         self.assertTrue(testProperty in client.listProperties(), 'failed to create the testProperty')
         '''Delete Property only deletes attributes in the service - will be fixed in the service'''
-        client.delete(propertyName='testProperty32')
+        client.delete(propertyName='testProperty31')
         self.assertTrue(testProperty not in client.listProperties(), 'failed to cleanup the testProperty')
         
 class TestLogEntryCreation(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        cls.testLogbook = Logbook(name='testLogbook', owner='testOwner')
+        client.createLogbook(cls.testLogbook)
+        pass
+        
+    @classmethod
+    def tearDownClass(cls):
+        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client.delete(logbookName='testLogbook')
+        pass
     
     def testCreateBasicEntry(self):
         client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
@@ -191,22 +205,23 @@ class TestLogEntryCreation(unittest.TestCase):
         property = Property(name='Process',
                             attributes={'processType':'diffCalc',
                                         'processId':'1234',
-                                        'processAttchments':'rawDataFile.txt'})
+                                        'processAttchments':'debug.log'})
+        client.createProperty(property)
         # load Data
         client.log(LogEntry(text='Initial setup',
                            owner='experimenter',
-                           logbooks=[Logbook(name='Experimental Logbook')],
+                           logbooks=[self.testLogbook],
                            properties=[property],
-                           attachments=[Attachment(open('rawDataFile.txt', 'rb'))]
+                           attachments=[Attachment(open('debug.log', 'rb'))]
                            ))
         # run scan
         property = Property(name='Process',
                             attributes={'processType':'diffCalc.process',
                                         'processId':'1234',
-                                        'processAttchments':'.txt'})
+                                        'processAttchments':'.log'})
         client.log(LogEntry(text='Initial setup',
                            owner='experimenter',
-                           logbooks=[Logbook(name='Experimental Logbook')],
+                           logbooks=[self.testLogbook],
                            properties=[property]
                            ))
         
@@ -217,7 +232,7 @@ class LogEntrySearchTest(unittest.TestCase):
     def setUpClass(cls):
         cls.client = client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
         cls.text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
-        cls.testAttachment = Attachment(open('Desert.jpg', 'rb'))
+        cls.testAttachment = Attachment(open('debug.log', 'rb'))
         cls.testLogbook = Logbook(name='testLogbook', owner='testOwner')
         cls.client.createLogbook(cls.testLogbook);
         cls.testTag = Tag(name='testTag') 
