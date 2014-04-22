@@ -15,5 +15,6 @@ setup(name='pyOlog',
       description='Python Olog Client Lib',
       author='Kunal Shroff',
       author_email='shroffk@bnl.gov',
-      packages=['pyOlog']
+      packages=['pyOlog'],
+      requires=['requests (>=2.0.0)', 'urllib3 (>=1.7.1)']
      )
