@@ -47,7 +47,7 @@ class OlogClient(object):
             else:
                 self.__auth = None
             self.__session = requests.Session()
-            self.__session.mount('http://www.github.com', Ssl3HttpAdapter())
+            self.__session.mount('https://', Ssl3HttpAdapter())
             self.__session.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader).raise_for_status()
         except:
             raise
