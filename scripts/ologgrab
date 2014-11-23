@@ -1,5 +1,7 @@
 #!/bin/bash
 tmpfile=`mktemp`.png
+echo "Select portion of the screen using the mouse."
 import $tmpfile
-olog -a $tmpfile Screengrab
+echo "Done."
+olog -a $tmpfile $*
 rm -rf $tmpfile
