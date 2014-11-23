@@ -16,5 +16,6 @@ setup(name='pyOlog',
       author='Kunal Shroff',
       author_email='shroffk@bnl.gov',
       packages=['pyOlog'],
-      requires=['requests (>=2.0.0)', 'urllib3 (>=1.7.1)']
+      requires=['requests (>=2.0.0)', 'urllib3 (>=1.7.1)'],
+      scripts=['scripts/olog']
      )

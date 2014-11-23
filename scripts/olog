@@ -3,7 +3,7 @@
 from optparse import OptionParser
 from getpass import getpass, getuser
 
-from pyOlog import LogEntry, Logbook, Tags, Attachments
+from pyOlog import LogEntry, Logbook, Tag, Attachment
 
 def olog():
   """Command line utility for making Olog entries"""
@@ -16,21 +16,27 @@ def olog():
   parser.add_option('-t', '--tags', dest = 'tags',
                     help = "Comma separated list of tags")
   parser.add_option('-u', '--user', dest = 'user',
-                    default = getuser())
+                    default = getuser(),
                     help = "Username for Olog Access")
-  parser.add_option('-t', '--text', dest = 'text',
-                    help = "Text of log entry")
+  parser.add_option('-f', '--file', dest = 'text',
+                    help = "Filename of log entry")
 
   (options, args) = parser.parse_args()
 
-  logbooks = [pyOlog.Logbook(n) for n in options.logbooks.split(',')]
-  tags     = [pyOlog.Tags(n) for n in options.tags.split(',')]
+  # Join the rest of the args as the log entry
+  text = ' '.join(args)
+
+  logbooks = [Logbook(n) for n in options.logbooks.split(',')]
+  if options.tags is not None:
+    tags     = [Tag(n) for n in options.tags.split(',')]
 
   # First create the log entry
 
-  logEntry = LogEntry(options.text, options.user, logbooks,
+  logEntry = LogEntry(text, options.user, logbooks,
                       tags = tags)
 
   passwd = getpass('Olog Password:')
   client = OlogClient(options.url, options.user, passwd)
 
+if __name__ == '__main__':
+  olog()
