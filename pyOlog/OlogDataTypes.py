@@ -41,7 +41,7 @@ class LogEntry(object):
         else:
           self.attachments = []
 
-        if self.properties is not None:
+        if properties is not None:
           self.properties = properties
         else:
           self.properties = []
