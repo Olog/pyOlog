@@ -77,7 +77,7 @@ class OlogClient(object):
             resp = self.__session.post(self.__url + self.__attachmentResource +'/'+ str(id),
                                   verify=False,
                                   auth=self.__auth,
-                                  files={'file':attachment.getFile()}
+                                  files={'file': attachment.getFilePost()}
                                   )
             resp.raise_for_status()
             

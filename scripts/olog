@@ -1,0 +1,136 @@
+#!/usr/bin/python
+
+import os, sys
+
+from argparse import ArgumentParser, FileType, RawDescriptionHelpFormatter
+from ConfigParser import SafeConfigParser
+from getpass import getpass, getuser
+
+from pyOlog import LogEntry, Logbook, Tag, Attachment, OlogClient
+
+description = """
+Command line utility for making OLog entries.
+
+Example:
+  %(prog)s -l Operations -t Data -u swilkins -a ./image.png
+
+This makes a log entry into the 'Operations' log tagged with thea
+tag 'Data' from the account of 'swilkins' with an image 'image.png
+attached to the log entry. The log text is taken from stdin and can
+either be entered on the command line or piped in. Alternatively a 
+text file can be specified with the '--file' option. 
+
+Multiple Tags and Logbooks can be specified using the options above.
+
+Note : A password is requested on the command line unless the option
+'-p' is supplied with a valid password.
+
+Optionally commands will take default from a config file located
+in the users home directory ~/.olog.cfg This can contain the base
+url for the Olog and also the default logbook to use.
+
+
+"""
+
+def olog():
+  """Command line utility for making Olog entries"""
+
+  # Get Defaults from Config File
+
+  cfg = SafeConfigParser()
+  files = [os.path.join(os.getenv('HOME'),'.olog.cfg')]
+  cfg.read(files)
+
+  if cfg.has_option('olog', 'url'):
+    default_url = cfg.get('olog', 'url')
+  else:
+    default_url = None
+  
+  if cfg.has_option('olog', 'logbook'):
+    default_logbook = cfg.get('olog', 'logbook')
+  else:
+    default_logbook = None
+
+  if cfg.has_option('olog', 'username'):
+    default_username = cfg.get('olog', 'logbook')
+  else:
+    default_username = getuser()
+
+  if cfg.has_option('olog', 'password'):
+    default_passwd = cfg.get('olog', 'password')
+  else:
+    default_passwd = None
+
+  # Parse Command Line Options
+
+  parser = ArgumentParser(epilog = description,
+                          formatter_class=RawDescriptionHelpFormatter)
+  parser.add_argument('-l', '--logbooks', dest = 'logbooks',
+                    help = "Logbook Name(s)", nargs = '*',
+                    default = default_logbook)
+  parser.add_argument('-t', '--tags', dest = 'tags',
+                    nargs = '*', help = "OLog Tag Name(s)")
+  parser.add_argument('-u', '--user', dest = 'user',
+                    default = getuser(),
+                    help = "Username for Olog Access")
+  parser.add_argument('-f', '--file', dest = 'text',
+                    type=FileType('r'),
+                    default=sys.stdin,
+                    help = "Filename of log entry text.")
+  parser.add_argument('--url', dest = 'url',
+                    help = "Base URL for Olog Access",
+                    default = default_url)
+  parser.add_argument('-a', '--attach', dest = 'attach',
+                    nargs = '*',
+                    help = "filename of attachments")
+  parser.add_argument('-p', '--passwd', dest = 'passwd',
+                    help = "Password for logging entry",
+                    default = None)
+
+  args = parser.parse_args()
+
+  if args.url is None:
+    parser.error('The URL must be specified')
+  if args.logbooks is None:
+    parser.error('The logbook must be specified')
+
+  # Get the text for the log entry, either from stdin
+  # or a file specified
+
+  with args.text as file:
+    text = file.read()
+
+  logbooks = [Logbook(n) for n in args.logbooks]
+  if args.tags is not None:
+    tags     = [Tag(n) for n in args.tags]
+  else:
+    tags = None
+
+  if args.attach is not None:
+    attachments = [Attachment(open(a)) for a in args.attach.split(',')]
+  else:
+    attachments = None
+
+  # First create the log entry
+
+  log_entry = LogEntry(text, args.user, logbooks,
+                      tags = tags,
+                      attachments = attachments)
+
+  # Now get the password
+
+  if args.passwd is None:
+    if default_passwd is None:
+      passwd = getpass('Olog Password for {}:'.format(args.user))
+    else:
+      passwd = default_passwd
+  else:
+    passwd = args.passwd
+
+  # Now do the log entry
+
+  client = OlogClient(args.url, args.user, passwd)
+  client.log(log_entry)
+  
+if __name__ == '__main__':
+  olog()

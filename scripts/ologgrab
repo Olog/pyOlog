@@ -1,0 +1,7 @@
+#!/bin/bash
+tmpfile=`mktemp`.png
+echo "Select portion of the screen using the mouse."
+import $tmpfile
+echo "Done."
+olog -a $tmpfile $*
+rm -rf $tmpfile
