@@ -3,13 +3,11 @@
 from optparse import OptionParser
 from getpass import getpass, getuser
 
-from pyOlog import LogEntry, Logbook, Tag, Attachment
+from pyOlog import LogEntry, Logbook, Tag, Attachment, OlogClient
 
 def olog():
   """Command line utility for making Olog entries"""
   parser = OptionParser()
-  parser.add_option('-a', '--attach', dest = 'attach_filename', 
-                    help = "Filename list to attach")
   parser.add_option('-l', '--logbooks', dest = 'logbooks',
                     help = "Comma separated list of logbook Name(s)",
                     default = 'Test')
@@ -19,7 +17,12 @@ def olog():
                     default = getuser(),
                     help = "Username for Olog Access")
   parser.add_option('-f', '--file', dest = 'text',
-                    help = "Filename of log entry")
+                    help = "Filename of log entry test")
+  parser.add_option('--url', dest = 'url',
+                    help = "Base URL for Olog Access",
+                    default = "https://xf23id-ca.cs.nsls2.local:8181/Olog")
+  parser.add_option('-a', '--attach', dest = 'attach',
+                    help = "Filename of attachments")
 
   (options, args) = parser.parse_args()
 
@@ -29,14 +32,23 @@ def olog():
   logbooks = [Logbook(n) for n in options.logbooks.split(',')]
   if options.tags is not None:
     tags     = [Tag(n) for n in options.tags.split(',')]
+  else:
+    tags = None
+
+  if options.attach is not None:
+    attachments = [Attachment(open(a)) for a in options.attach.split(',')]
+  else:
+    attachments = None
 
   # First create the log entry
 
-  logEntry = LogEntry(text, options.user, logbooks,
-                      tags = tags)
+  log_entry = LogEntry(text, options.user, logbooks,
+                      tags = tags,
+                      attachments = attachments)
 
   passwd = getpass('Olog Password:')
   client = OlogClient(options.url, options.user, passwd)
-
+  client.log(log_entry)
+  
 if __name__ == '__main__':
   olog()
