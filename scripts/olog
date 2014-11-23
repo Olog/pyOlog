@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 
 import os, sys
 
@@ -8,19 +9,20 @@ from getpass import getpass, getuser
 
 from pyOlog import LogEntry, Logbook, Tag, Attachment, OlogClient
 
-description = """
+description = """\
 Command line utility for making OLog entries.
 
 Example:
   %(prog)s -l Operations -t Data -u swilkins -a ./image.png
 
-This makes a log entry into the 'Operations' log tagged with thea
+This makes a log entry into the 'Operations' log tagged with the
 tag 'Data' from the account of 'swilkins' with an image 'image.png
 attached to the log entry. The log text is taken from stdin and can
 either be entered on the command line or piped in. Alternatively a 
 text file can be specified with the '--file' option. 
 
-Multiple Tags and Logbooks can be specified using the options above.
+Multiple Tags and Logbooks can be specified after the option on the
+command line separated by spaces. 
 
 Note : A password is requested on the command line unless the option
 '-p' is supplied with a valid password.
@@ -32,34 +34,38 @@ url for the Olog and also the default logbook to use.
 
 """
 
+def get_option(cfg, base, opt):
+  """Check if option base/opt is in config cfg"""
+  if cfg.has_option(base, opt):
+    return cfg.get(base, opt)
+  else:
+    return None
+
 def olog():
   """Command line utility for making Olog entries"""
 
   # Get Defaults from Config File
 
   cfg = SafeConfigParser()
-  files = [os.path.join(os.getenv('HOME'),'.olog.cfg')]
-  cfg.read(files)
+  files = ['/etc/olog.conf',
+           os.path.join(os.getenv('HOME'),'.olog.conf')]
+  files = cfg.read(files)
 
-  if cfg.has_option('olog', 'url'):
-    default_url = cfg.get('olog', 'url')
-  else:
-    default_url = None
-  
-  if cfg.has_option('olog', 'logbook'):
-    default_logbook = cfg.get('olog', 'logbook')
-  else:
-    default_logbook = None
+  default_url = get_option(cfg, 'olog', 'url')
 
-  if cfg.has_option('olog', 'username'):
-    default_username = cfg.get('olog', 'logbook')
-  else:
+  default_logbooks = get_option(cfg, 'olog', 'logbooks')
+  if default_logbooks is not None:
+    default_logbooks = default_logbooks.split(',')
+
+  default_username = get_option(cfg, 'olog', 'username')
+  if default_username is None:
     default_username = getuser()
 
-  if cfg.has_option('olog', 'password'):
-    default_passwd = cfg.get('olog', 'password')
-  else:
-    default_passwd = None
+  default_passwd = get_option(cfg, 'olog', 'password')
+
+  default_tags = get_option(cfg, 'olog', 'tags')
+  if default_tags is not None:
+    default_tags = default_tags.split(',')
 
   # Parse Command Line Options
 
@@ -67,11 +73,12 @@ def olog():
                           formatter_class=RawDescriptionHelpFormatter)
   parser.add_argument('-l', '--logbooks', dest = 'logbooks',
                     help = "Logbook Name(s)", nargs = '*',
-                    default = default_logbook)
+                    default = default_logbooks)
   parser.add_argument('-t', '--tags', dest = 'tags',
-                    nargs = '*', help = "OLog Tag Name(s)")
+                    nargs = '*', help = "OLog Tag Name(s)",
+                    default = default_tags)
   parser.add_argument('-u', '--user', dest = 'user',
-                    default = getuser(),
+                    default = default_username,
                     help = "Username for Olog Access")
   parser.add_argument('-f', '--file', dest = 'text',
                     type=FileType('r'),
@@ -84,19 +91,27 @@ def olog():
                     nargs = '*',
                     help = "filename of attachments")
   parser.add_argument('-p', '--passwd', dest = 'passwd',
-                    help = "Password for logging entry",
-                    default = None)
+                    help = "Password for logging entry")
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument('-v', action = 'store_true', dest = 'verbose',
+                     help = "Verbose output", default = False)
+  group.add_argument('-q', action = 'store_true', dest = 'quiet',
+                     help = "Suppress all output", default = False)
 
   args = parser.parse_args()
 
   if args.url is None:
     parser.error('The URL must be specified')
   if args.logbooks is None:
-    parser.error('The logbook must be specified')
+    parser.error('At least one logbook must be specified')
+  if args.user is None:
+    parser.error('You must specify a username')
 
-  # Get the text for the log entry, either from stdin
-  # or a file specified
+  if args.verbose:
+    for f in files:
+      print("Reading config from {}".format(f))
 
+  # Get the text for the log entry
   with args.text as file:
     text = file.read()
 
