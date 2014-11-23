@@ -1,0 +1,36 @@
+#!/usr/bin/python
+
+from optparse import OptionParser
+from getpass import getpass, getuser
+
+from pyOlog import LogEntry, Logbook, Tags, Attachments
+
+def olog():
+  """Command line utility for making Olog entries"""
+  parser = OptionParser()
+  parser.add_option('-a', '--attach', dest = 'attach_filename', 
+                    help = "Filename list to attach")
+  parser.add_option('-l', '--logbooks', dest = 'logbooks',
+                    help = "Comma separated list of logbook Name(s)",
+                    default = 'Test')
+  parser.add_option('-t', '--tags', dest = 'tags',
+                    help = "Comma separated list of tags")
+  parser.add_option('-u', '--user', dest = 'user',
+                    default = getuser())
+                    help = "Username for Olog Access")
+  parser.add_option('-t', '--text', dest = 'text',
+                    help = "Text of log entry")
+
+  (options, args) = parser.parse_args()
+
+  logbooks = [pyOlog.Logbook(n) for n in options.logbooks.split(',')]
+  tags     = [pyOlog.Tags(n) for n in options.tags.split(',')]
+
+  # First create the log entry
+
+  logEntry = LogEntry(options.text, options.user, logbooks,
+                      tags = tags)
+
+  passwd = getpass('Olog Password:')
+  client = OlogClient(options.url, options.user, passwd)
+
