@@ -1,0 +1,5 @@
+#!/bin/bash
+tmpfile=`mktemp`.png
+import $tmpfile
+olog -a $tmpfile Screengrab
+rm -rf $tmpfile
