@@ -13,7 +13,7 @@ class LogEntry(object):
     It can optionally be associated with one or more logbooks and contain one or more tags, properties and attachments
     '''
 
-    def __init__(self, text, owner, logbooks, tags=[], attachments=[], properties=[], id=None, createTime=None, modifyTime=None):
+    def __init__(self, text, owner, logbooks, tags=None, attachments=None, properties=None, id=None, createTime=None, modifyTime=None):
         '''
         Constructor for log Entry
         Simple LogEntry
@@ -30,9 +30,22 @@ class LogEntry(object):
         self.Text = str(text).strip();
         self.Owner = str(owner).strip();
         self.logbooks = logbooks
-        self.tags = tags
-        self.attachments = attachments
-        self.properties = properties
+
+        if tags is not None:
+          self.tags = tags
+        else:
+          self.tags = []
+
+        if attachments is not None:
+          self.attachments = attachments
+        else:
+          self.attachments = []
+
+        if self.properties is not None:
+          self.properties = properties
+        else:
+          self.properties = []
+
         self.__id = id
         self.__createTime = createTime
         self.__modifytime = modifyTime
