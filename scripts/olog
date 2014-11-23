@@ -51,6 +51,16 @@ def olog():
   else:
     default_logbook = None
 
+  if cfg.has_option('olog', 'username'):
+    default_username = cfg.get('olog', 'logbook')
+  else:
+    default_username = getuser()
+
+  if cfg.has_option('olog', 'password'):
+    default_passwd = cfg.get('olog', 'password')
+  else:
+    default_passwd = None
+
   # Parse Command Line Options
 
   parser = ArgumentParser(epilog = description,
@@ -73,7 +83,7 @@ def olog():
   parser.add_argument('-a', '--attach', dest = 'attach',
                     nargs = '*',
                     help = "filename of attachments")
-  parser.add_argument('-p', '--passwd', dest = 'password',
+  parser.add_argument('-p', '--passwd', dest = 'passwd',
                     help = "Password for logging entry",
                     default = None)
 
@@ -107,10 +117,15 @@ def olog():
                       tags = tags,
                       attachments = attachments)
 
+  # Now get the password
+
   if args.passwd is None:
-    passwd = getpass('Olog Password for {}:'.format(args.user))
+    if default_passwd is None:
+      passwd = getpass('Olog Password for {}:'.format(args.user))
+    else:
+      passwd = default_passwd
   else:
-    passwd = arga.passwd
+    passwd = args.passwd
 
   # Now do the log entry
 
