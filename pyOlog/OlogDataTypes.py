@@ -159,7 +159,7 @@ class Attachment(object):
         basename = os.path.basename(self.__file.name)
         mtype = mimetypes.guess_type(basename)[0]
         if mtype is None:
-          mtype = 'application/octet-stream'
+            mtype = 'application/octet-stream'
         return  (basename, self.__file, mtype)
 
 class Property(object):

@@ -7,6 +7,8 @@ Created on Jan 10, 2013
 @author: shroffk
 '''
 import requests
+import ssl
+from requests.adapters import HTTPAdapter
 from json import JSONEncoder, JSONDecoder
 from OlogDataTypes import LogEntry, Logbook, Tag, Property, Attachment
 from _conf import _conf
@@ -16,10 +18,7 @@ import logging
 from urllib import urlencode
 from collections import OrderedDict
 import tempfile
-
-import ssl 
-from requests.adapters import HTTPAdapter
-from urllib3.poolmanager import PoolManager
+from requests.packages.urllib3.poolmanager import PoolManager
 
 class OlogClient(object):
     '''
@@ -32,7 +31,7 @@ class OlogClient(object):
     __logbooksResource = '/resources/logbooks'
     __attachmentResource = '/resources/attachments'
 
-    def __init__(self, url=None, username=None, password=None):
+    def __init__(self, url=None, username=None, password=None, timeout=10):
         '''
         Constructor
         '''
@@ -42,13 +41,15 @@ class OlogClient(object):
             self.__url = self.__getDefaultConfig('url', url)
             self.__username = self.__getDefaultConfig('username', username)
             self.__password = self.__getDefaultConfig('password', password)
+            self.__timeout = self.__getDefaultConfig('timeout', timeout)
             if self.__username and self.__password:
                 self.__auth = auth.HTTPBasicAuth(self.__username, self.__password)
             else:
                 self.__auth = None
             self.__session = requests.Session()
             self.__session.mount('https://', Ssl3HttpAdapter())
-            self.__session.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader).raise_for_status()
+            
+            response = self.__session.get(self.__url + self.__tagsResource, verify=False, headers=self.__jsonheader, timeout=self.__timeout).raise_for_status()
         except:
             raise
     
@@ -71,17 +72,35 @@ class OlogClient(object):
                      headers=self.__jsonheader,
                      auth=self.__auth)
         resp.raise_for_status()
-        id = LogEntryDecoder().dictToLogEntry(resp.json()[0]).getId()
+        log = LogEntryDecoder().dictToLogEntry(resp.json()[0])
         '''Attachments'''
         for attachment in logEntry.getAttachments():
-            resp = self.__session.post(self.__url + self.__attachmentResource +'/'+ str(id),
+            resp = self.__session.post(self.__url + self.__attachmentResource +'/'+ str(log.getId()),
                                   verify=False,
                                   auth=self.__auth,
                                   files={'file': attachment.getFilePost()}
                                   )
             resp.raise_for_status()
+        return log
             
-            
+    def update(self, logId, logEntry):
+        '''
+        update an exisitng log entry
+        '''
+        resp = self.__session.post(self.__url + self.__logsResource +'/'+ str(logId),
+                     data=json.dumps(json.loads(LogEntryEncoder().encode(logEntry))[0]),
+                     verify=False,
+                     headers=self.__jsonheader,
+                     auth=self.__auth)
+        resp.raise_for_status()
+        '''Attachments'''
+        for attachment in logEntry.getAttachments():
+            resp = self.__session.post(self.__url + self.__attachmentResource +'/'+ str(logId),
+                                  verify=False,
+                                  auth=self.__auth,
+                                  files={'file': attachment.getFilePost()}
+                                  )
+            resp.raise_for_status()
     
     def createLogbook(self, logbook):
         '''
@@ -376,4 +395,4 @@ class Ssl3HttpAdapter(HTTPAdapter):
         self.poolmanager = PoolManager(num_pools=connections,
                                        maxsize=maxsize,
                                        block=block,
-                                       ssl_version=ssl.PROTOCOL_SSLv3)
+                                       ssl_version=ssl.PROTOCOL_TLSv1)
