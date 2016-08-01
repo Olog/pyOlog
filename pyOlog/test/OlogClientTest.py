@@ -7,22 +7,29 @@ Created on Jan 9, 2013
 @author: shroffk
 '''
 import unittest
+
 from pyOlog import OlogClient
 from pyOlog import Tag, Logbook, Property, LogEntry, Attachment
 from datetime import datetime
 import time
-import os
-from pyOlog.test.OlogDataTypeTest import TestProperty
+from _testConf import _conf
 
+
+def getDefaultTestConfig(arg):
+    if _conf.has_option('DEFAULT', arg):
+        return _conf.get('DEFAULT', arg)
+    else:
+        return None
+        
 class TestCreateClient(unittest.TestCase):
     
     def testCreateClient(self):
         '''
         Simple test to create a ologClient
         '''
-        client = OlogClient(url='http://localhost:8080/Olog')
+        client = OlogClient(url=getDefaultTestConfig('url'))
         self.assertIsNotNone(client, 'Failed to create olog client')
-        client = OlogClient(url='https://localhost:8181/Olog')
+        client = OlogClient(url=getDefaultTestConfig('url'))
         self.assertIsNotNone(client, 'Failed to create olog client')
         pass
 
@@ -32,7 +39,7 @@ class TestCreate(unittest.TestCase):
         '''
         Basic operations of creating, listing and deleting a Tag object
         '''
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testTag = Tag(name='testTag', state="Active")
         client.createTag(testTag)
         self.assertTrue(testTag in client.listTags(), 'failed to create the testTag')
@@ -43,7 +50,7 @@ class TestCreate(unittest.TestCase):
         '''
         Basic operations of creating, listing and deleting a Logbook object
         '''
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook)
         self.assertTrue(testLogbook in client.listLogbooks(), 'failed to create the testLogbook')
@@ -55,7 +62,7 @@ class TestCreate(unittest.TestCase):
         Basic operations of creating, listing and deleting a property object
         TODO: the cleanup needs to be resolved
         '''
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testAttributes = {"attr":"test"}
         testProperty = Property(name='testProperty31', attributes=testAttributes)
         client.createProperty(testProperty)
@@ -68,19 +75,19 @@ class TestLogEntryCreation(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         cls.testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(cls.testLogbook)
         pass
         
     @classmethod
     def tearDownClass(cls):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         client.delete(logbookName='testLogbook')
         pass
     
     def testCreateBasicEntry(self):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook)
         text = 'test python log entry ' + datetime.now().isoformat(' ')
@@ -97,7 +104,7 @@ class TestLogEntryCreation(unittest.TestCase):
         pass
     
     def testCreateEntryWithTag(self):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook);
         testTag = Tag(name='testTag')
@@ -121,7 +128,7 @@ class TestLogEntryCreation(unittest.TestCase):
         pass
     
     def testCreateEntryWithAttachments(self):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook);
         text = 'test python log entry with attachments ' + datetime.now().isoformat(' ')
@@ -148,7 +155,7 @@ class TestLogEntryCreation(unittest.TestCase):
         pass
     
     def testCreateEntryWithMultipleAttributes(self):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         text = 'test python log entry with multiple attributes ' + datetime.now().isoformat(' ')
         testImageAttachment = Attachment(open('Desert.jpg', 'rb'))
         testTextAttachment = Attachment(open('debug.log', 'rb'))
@@ -176,7 +183,7 @@ class TestLogEntryCreation(unittest.TestCase):
         self.assertEqual(len(client.find(search=text)), 0, 'Failed to cleanup log entry with attachment')      
     
     def testCreateEntryWithProperties(self):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         testLogbook = Logbook(name='testLogbook', owner='testOwner')
         client.createLogbook(testLogbook);
         testProperty = Property(name='testLogProperty', attributes={'id':None, 'url':None})
@@ -201,7 +208,7 @@ class TestLogEntryCreation(unittest.TestCase):
         pass
     
     def testProcess(self):
-        client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         property = Property(name='Process',
                             attributes={'processType':'diffCalc',
                                         'processId':'1234',
@@ -226,11 +233,44 @@ class TestLogEntryCreation(unittest.TestCase):
                            ))
         
 
+class LogEntryUpdateTest(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
+        cls.testLogbook = Logbook(name='testLogbook', owner='testOwner')
+        cls.client.createLogbook(cls.testLogbook)
+        pass
+        
+    @classmethod
+    def tearDownClass(cls):
+        client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
+        client.delete(logbookName='testLogbook')
+        pass
+    
+    def testUpdate(self):
+        text = 'test python log entry ' + datetime.now().isoformat(' ')
+        testLog = LogEntry(text=text,
+                           owner='testOwner',
+                           logbooks=[self.testLogbook])
+        log = self.client.log(logEntry=testLog)
+        
+        text = 'test update python log entry ' + datetime.now().isoformat(' ')
+        updatedLogEntry = LogEntry(text=text,
+                           owner='testOwner',
+                           logbooks=[self.testLogbook])
+        updatedLog = self.client.update(log.getId(), updatedLogEntry)
+        
+        logEntries = self.client.find(search=text)
+        self.assertTrue(len(logEntries) == 1, 'Failed to update log Entry with Tag')
+        self.client.delete(logEntryId=log.getId())
+    
+
 class LogEntrySearchTest(unittest.TestCase):
            
     @classmethod
     def setUpClass(cls):
-        cls.client = client = OlogClient(url='https://localhost:8181/Olog', username='shroffk', password='1234')
+        cls.client = client = OlogClient(url=getDefaultTestConfig('url'), username=getDefaultTestConfig('username'), password=getDefaultTestConfig('password'))
         cls.text = 'test python log entry with attachment ' + datetime.now().isoformat(' ')
         cls.testAttachment = Attachment(open('debug.log', 'rb'))
         cls.testLogbook = Logbook(name='testLogbook', owner='testOwner')
